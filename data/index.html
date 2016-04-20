@@ -39,6 +39,7 @@
                         }
                         elem.innerHTML += "<div class=\"useritem\" onclick=\"getGame('" + data.data[i].uid + "')\">" + data.data[i].info.first_name + " " + 
                             data.data[i].info.last_name + "</div>"
+                        elem.style["max-height"] = document.getElementById("game").offsetHeight;
                         user_info[data.data[i].uid] = data.data[i].info.first_name + " " + data.data[i].info.last_name
                     }
                 } else if (data.action == "game") {
@@ -281,9 +282,9 @@
     <div class="main" id="main">
         <center>
             <div class="auth" id="auth"></div>
-            <table width="80%">
+            <table width="90%">
                 <tr> 
-                    <td width="85%">
+                    <td width="85%" valign="top">
                         <div class="game" id="game">
                             <div class="info" id="info">
                                 <table width="100%">
@@ -325,7 +326,7 @@
                             </table>
                         </div>
                     </td>
-                    <td width="15%">
+                    <td width="15%" valign="top" id="rightmenu">
                         <div class="users" id="users"></div>
                     </td>
                 </tr>
