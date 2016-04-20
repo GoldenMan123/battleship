@@ -1,0 +1,343 @@
+<html>
+    <head>
+        <title>Node.js project</title>
+        <link rel="stylesheet" type="text/css" href="main.css" />
+        <script src="//vk.com/js/api/openapi.js" type="text/javascript"></script> 
+        <script type="text/javascript">
+            var socket = new WebSocket("ws://localhost:8080")
+            var player = null
+            var game = null
+            var orientation = 0
+            const shipsize = [4, 3, 3, 2, 2, 2, 1, 1, 1, 1]
+            var lastOver = null
+            var selected_game = null
+            var my_uid = null
+            var user_info = {}
+
+            document.onkeydown = function (e) {
+                if (e.keyCode == 16) {
+                    orientation = 1 - orientation
+                    if (lastOver) {
+                        gridOver(lastOver)
+                    }
+                }
+            }
+
+            socket.onmessage = function (event) {
+                var data = JSON.parse(event.data)
+                if (data.action == "auth") {
+                    document.getElementById("gamestate").innerHTML = "Выберите соперника"
+                    document.getElementById("player1name").innerHTML = "<a target=\"page\" href=\"https://vk.com/id" + data.uid + "\">" + data.first_name + " " + data.last_name + "</a>"
+                    my_uid = data.uid
+                } else if (data.action == "users") {
+                    user_info = {}
+                    var elem = document.getElementById("users")
+                    elem.innerHTML = ""
+                    for (i in data.data) {
+                        if (data.data[i].uid == my_uid) {
+                            continue
+                        }
+                        elem.innerHTML += "<div class=\"useritem\" onclick=\"getGame('" + data.data[i].uid + "')\">" + data.data[i].info.first_name + " " + 
+                            data.data[i].info.last_name + "</div>"
+                        user_info[data.data[i].uid] = data.data[i].info.first_name + " " + data.data[i].info.last_name
+                    }
+                } else if (data.action == "game") {
+                    game = data.game
+                    player = data.player
+                    var enemy = game.uid2
+                    if (player == 2) {
+                        enemy = game.uid1
+                    }
+                    var enemy_name = user_info[enemy] || enemy
+                    document.getElementById("player2name").innerHTML = "<a target=\"page\" href=\"https://vk.com/id" + enemy + "\">" + enemy_name + "</a>"
+                    if (player == 1) {
+                        updateGrid("grid1", game.player1grid, game.player2view)
+                        updateGrid("grid2", game.player1view, null)
+                    } else {
+                        updateGrid("grid1", game.player2grid, game.player1view)
+                        updateGrid("grid2", game.player2view, null)
+                    }
+                    if (!game.started) {
+                        var ok = true
+                        var sa1 = game.player1ships
+                        var sa2 = game.player2ships
+                        for (var i = 0; i < 10; ++i) {
+                            if (sa1[i] == 0) {
+                                ok = false
+                                break
+                            }
+                            if (sa2[i] == 0) {
+                                ok = false
+                                break
+                            }
+                        }
+                        if (ok) {
+                            socket.send(JSON.stringify({"action": "gameStart"}))
+                        }
+                        document.getElementById("gamestate").innerHTML = "Расстановка кораблей"
+                    }
+                    if (game.finished) {
+                        socket.send(JSON.stringify({"action": "finishgame"}))
+                    }
+                    if (game.turn == player) {
+                        document.getElementById("gamestate").innerHTML = "Ваш ход"
+                    } else {
+                        document.getElementById("gamestate").innerHTML = "Ход соперника"
+                    }
+                } else if (data.action == "gamerequest") {
+                    socket.send(JSON.stringify({"action": "getGame", "uid": selected_game}))
+                }
+            }
+
+            socket.onopen = function () {
+                socket.send(window.location.hash)    
+                socket.send(JSON.stringify({"action": "getUsers"}))
+            }
+
+            socket.onclose = function (event) {
+                document.getElementById("gamestate").innerHTML = "Соединение разорвано. Обновите страницу."    
+            }
+
+            socket.onerror = function (error) {}
+
+            function getGame(uid) {
+                selected_game = uid
+                socket.send(JSON.stringify({"action": "getGame", "uid": uid}))
+            }
+            
+            function newGrid(name) {
+                var t = document.createElement('table')
+                t.id = name
+                t.className = "grid"
+                t.width = "100%"
+                for (var i = 0; i < 10; ++i) {
+                    var tr = document.createElement('tr')
+                    t.appendChild(tr)
+                    for (var j = 0; j < 10; ++j) {
+                        var td = document.createElement('td')
+                        td.id = name + '-' + String(i) + '-' + String(j)
+                        td.className = "gridfield"
+                        td.innerHTML = "<img src=\"empty.png\" width=\"100%\" onclick=\"gridClick('" + td.id + "')\" onmouseover=\"gridOver('" + td.id + "')\" onmouseout=\"gridOut('" + td.id + "')\" style=\"cursor: pointer;\"/>"
+                        tr.appendChild(td)
+                    }
+                }
+                return t
+            }
+            
+            function gridClick(id) {
+                if (game) {
+                    if (!game.started) {
+                        if (id[4] == "2") {
+                            return
+                        }
+                        if (player == 1) {
+                            var sa = game.player1ships
+                        } else {
+                            var sa = game.player2ships
+                        }
+                        var found = -1
+                        for (var i = 0; i < 10; ++i) {
+                            if (sa[i] == 0) {
+                                found = i
+                                break
+                            } 
+                        }  
+                        if (found == -1) {
+                            return
+                        }
+                        var x = id[6]
+                        var y = id[8]
+                        socket.send(JSON.stringify({"action": "place", "orientation": orientation, "x": x, "y": y, "ship": found}))         
+                    } else {
+                        if (id[4] == "1") {
+                            return
+                        }
+                        if (game.turn != player) {
+                            return
+                        }
+                        var x = id[6]
+                        var y = id[8]
+                        socket.send(JSON.stringify({"action": "turn", "x": x, "y": y}))
+                    }   
+                }
+            }
+            
+            function gridOver(id) {
+                if (id[4] == "2") {
+                    return 
+                }
+                if (!game) {
+                    return
+                }
+                if (game.started) {
+                    return
+                }
+                lastOver = id
+                if (player == 1) {
+                    updateGrid("grid1", game.player1grid, game.player2view)
+                    updateGrid("grid2", game.player1view, null)
+                } else {
+                    updateGrid("grid1", game.player2grid, game.player1view)
+                    updateGrid("grid2", game.player2view, null)
+                }
+                if (player == 1) {
+                    var sa = game.player1ships
+                } else {
+                    var sa = game.player2ships
+                }
+                var found = -1
+                for (var i = 0; i < 10; ++i) {
+                    if (sa[i] == 0) {
+                        found = i
+                        break
+                    } 
+                }
+                if (found == -1) {
+                    return
+                }
+                var x = +id[6]
+                var y = +id[8]
+                var sz = shipsize[found]
+                for (var i = 0; i < sz; ++i) {
+                    if (x > 9) {
+                        break
+                    }
+                    if (y > 9) {
+                        break
+                    }
+                    var elem = document.getElementById("grid1" + '-' + String(x) + '-' + String(y)).children[0]
+                    elem.src = "full.png"
+                    if (orientation == 0) {
+                        x += 1
+                    } else {
+                        y += 1
+                    }
+                }
+            }
+
+            function gridOut(id) {
+                lastOver = null
+                if (!game) {
+                    return
+                }
+                if (game.started) {
+                    return
+                }
+                if (player == 1) {
+                    updateGrid("grid1", game.player1grid, game.player2view)
+                    updateGrid("grid2", game.player1view, null)
+                } else {
+                    updateGrid("grid1", game.player2grid, game.player1view)
+                    updateGrid("grid2", game.player2view, null)
+                }
+            }
+
+            function clearGrid(element) {
+                for (var i = 0; i < 10; ++i) {
+                    for (var j = 0; j < 10; ++j) {
+                        var elem = document.getElementById(element + '-' + String(i) + '-' + String(j)).children[0]
+                        elem.src = "empty.png"
+                    }
+                }
+            }
+
+            function updateGrid(element, grid, mask) {
+                if (!grid) {
+                    return
+                }
+                for (var i = 0; i < 10; ++i) {
+                    for (var j = 0; j < 10; ++j) {
+                        var elem = document.getElementById(element + '-' + String(i) + '-' + String(j)).children[0]
+                        if (mask == null) {
+                            if (grid[i][j] == -1) {
+                                elem.src = 'miss.png'
+                            } else if (grid[i][j] > 0) {
+                                elem.src = 'hit.png'
+                            } else {
+                                elem.src = 'empty.png'
+                            }
+                        } else {
+                            if (grid[i][j] != 0) {
+                                if (mask[i][j] != 0) {
+                                    elem.src = 'hit.png'
+                                } else {
+                                    elem.src = 'full.png'
+                                }
+                            } else {
+                                if (mask[i][j] != 0) {
+                                    elem.src = 'miss.png'
+                                } else {
+                                    elem.src = 'empty.png'
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        </script>
+    </head>
+    <body>
+    <div class="header" id="header"></div>
+    <div class="main" id="main">
+        <center>
+            <div class="auth" id="auth"></div>
+            <table width="80%">
+                <tr> 
+                    <td width="85%">
+                        <div class="game" id="game">
+                            <div class="info" id="info">
+                                <table width="100%">
+                                    <tr>
+                                        <td width="50%">
+                                            <center>
+                                                <h2>Вы:
+                                                    <div id="player1name">-</div> 
+                                                </h2>
+                                            </center>
+                                        </td>
+                                        <td width="50%">
+                                            <center>
+                                                <h2>Ваш соперник:
+                                                    <div id="player2name">-</div> 
+                                                </h2>
+                                            </center>
+                                        </td>
+                                    </tr>
+                                </table>
+                                <center>
+                                    <h1>
+                                        <div id="gamestate">
+                                            <a href="https://oauth.vk.com/authorize?client_id=5422303&display=page&redirect_uri=http://localhost:8080&response_type=token&v=5.50">Авторизуйтесь</a>
+                                        </div>
+                                    </h1>
+                                </center>
+                            </div>
+                            <table width="100%">
+                                <tr>
+                                    <td width="50%">
+                                        <div class="gridcontainer" id="grid1container"></div> 
+                                    </td>
+                                    <td><div class="gridsplitter" id="gridsplitter"></div></td>
+                                    <td width="50%">
+                                        <div class="gridcontainer" id="grid2container"></div> 
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+                    </td>
+                    <td width="15%">
+                        <div class="users" id="users"></div>
+                    </td>
+                </tr>
+            </table>
+        </center>
+        <script>
+            g1 = newGrid('grid1')
+            document.getElementById("grid1container").appendChild(g1)
+            g2 = newGrid('grid2')
+            document.getElementById("grid2container").appendChild(g2)
+        </script> 
+    </div>
+    <div class="footer" id="footer"></div>
+    </body>
+</html>
