@@ -36,11 +36,30 @@ function send_js(response, filename) {
     file.pipe(response)
 }
 
+function authorize_vk(code, response) {
+    https.get("https://oauth.vk.com/access_token?client_id=5422303&client_secret=SECRET&redirect_uri=http://localhost:8080&code=" + code, function(vk_res) {
+        vk_res.on("data", function (d) {
+            try {
+                token = JSON.parse(d.toString()).access_token
+                response.writeHead(301,
+                  { Location: 'http://localhost:8080/#access_token=' + token }
+                )
+            } finally {
+                response.end()
+            }
+        })
+    })
+}
+
 function server_callback(request, response) {
     var u = url.parse(request.url, true)
     if (request.method == 'GET') {
         if (u.pathname == '/') {
-            send_html(response, 'index.html')
+            if (u.query.code) {
+                authorize_vk(u.query.code, response)
+            } else {
+                send_html(response, 'index.html')
+            }
         } else if ((u.pathname == '/empty.png') ||
                    (u.pathname == '/hit.png') ||
                    (u.pathname == '/full.png') ||
