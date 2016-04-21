@@ -275,7 +275,7 @@ mongo.connect("mongodb://localhost:27017/battleship", function (err, db) {
                                 if (!selected_game.finished) {
                                     selected_game.finished = true
                                     selected_game.result = 3 - selected_player
-                                    collection.updateOne({}, selected_game, function(err, results) {})
+                                    collection.updateOne({_id: selected_game._id}, selected_game, function(err, results) {})
                                 }
                                 get_game_from_db(db, uid1, uid2, function(game) {
                                     send_gamerequest(uid1)
@@ -289,7 +289,7 @@ mongo.connect("mongodb://localhost:27017/battleship", function (err, db) {
                                 (req.ship <= "9") && ws_table[connection_id] &&
                                 selected_game) {
                                     battleship.placeShip(selected_game, selected_player, +req.ship, +req.orientation, +req.x, +req.y)
-                                    collection.updateOne({}, selected_game, function(err, results) {
+                                    collection.updateOne({_id: selected_game._id}, selected_game, function(err, results) {
                                         send_gamerequest(selected_game.uid1)
                                         send_gamerequest(selected_game.uid2)
                                     })
@@ -297,7 +297,7 @@ mongo.connect("mongodb://localhost:27017/battleship", function (err, db) {
                         } else if (req.action == "gameStart") {
                             if (selected_game) {
                                 battleship.startGame(selected_game)
-                                collection.updateOne({}, selected_game, function(err, results) {
+                                collection.updateOne({_id: selected_game._id}, selected_game, function(err, results) {
                                     send_gamerequest(selected_game.uid1)
                                     send_gamerequest(selected_game.uid2)
                                 })
@@ -306,7 +306,7 @@ mongo.connect("mongodb://localhost:27017/battleship", function (err, db) {
                             if ((req.x >= "0") && (req.x <= "9") && (req.y >= "0") &&
                                 (req.y <= "9") && selected_game) {
                                     battleship.doTurn(selected_game, selected_player, +req.x, +req.y)
-                                    collection.updateOne({}, selected_game, function(err, results) {
+                                    collection.updateOne({_id: selected_game._id}, selected_game, function(err, results) {
                                         send_gamerequest(selected_game.uid1)
                                         send_gamerequest(selected_game.uid2)
                                     })
