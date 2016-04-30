@@ -80,10 +80,12 @@
                     if (game.finished) {
                         socket.send(JSON.stringify({"action": "finishgame"}))
                     }
-                    if (game.turn == player) {
-                        document.getElementById("gamestate").innerHTML = "Ваш ход"
-                    } else {
-                        document.getElementById("gamestate").innerHTML = "Ход соперника"
+                    if (game.started) {
+                        if (game.turn == player) {
+                            document.getElementById("gamestate").innerHTML = "Ваш ход"
+                        } else {
+                            document.getElementById("gamestate").innerHTML = "Ход соперника"
+                        }
                     }
                 } else if (data.action == "gamerequest") {
                     socket.send(JSON.stringify({"action": "getGame", "uid": selected_game}))
