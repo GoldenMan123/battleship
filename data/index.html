@@ -32,7 +32,7 @@
                 } else if (data.action == "users") {
                     user_info = {}
                     var elem = document.getElementById("users")
-                    elem.innerHTML = ""
+                    elem.innerHTML = "<center>Игроки онлайн:</center>"
                     for (i in data.data) {
                         if (data.data[i].uid == my_uid) {
                             continue
@@ -87,6 +87,32 @@
                             document.getElementById("gamestate").innerHTML = "Ход соперника"
                         }
                     }
+                    hi1 = document.getElementById("player1name").children[0]
+                    hi1.title = "Ходы игрока: "
+                    comma = false
+                    for (i in game.player1turns) {
+                        if (!comma) {
+                            comma = true
+                        } else {
+                            hi1.title += ", "
+                        }
+                        turn = game.player1turns[i]
+                        hi1.title += String.fromCharCode('А'.charCodeAt(0) + turn[1]) + "" + String(turn[0] + 1)
+                    }
+                    hi1.title += "."
+                    hi2 = document.getElementById("player2name").children[0]
+                    hi2.title = "Ходы игрока: "
+                    comma = false
+                    for (i in game.player2turns) {
+                        if (!comma) {
+                            comma = true
+                        } else {
+                            hi2.title += ", "
+                        }
+                        turn = game.player2turns[i]
+                        hi2.title += String.fromCharCode('А'.charCodeAt(0) + turn[1]) + "" + String(turn[0] + 1)
+                    }
+                    hi2.title += "."
                 } else if (data.action == "gamerequest") {
                     socket.send(JSON.stringify({"action": "getGame", "uid": selected_game}))
                 }

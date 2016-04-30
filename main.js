@@ -321,6 +321,7 @@ mongo.connect("mongodb://localhost:27017/battleship", function (err, db) {
             if (ws_table[connection_id] && (ws == user_table[ws_table[connection_id]])) {
                 delete user_table[ws_table[connection_id]]
                 delete user_info[ws_table[connection_id]]
+                broadcast_users(user_table, user_info)
             }
             if (ws_table[connection_id]) {
                 console.log(String(ws_table[connection_id] + ": log out"))
