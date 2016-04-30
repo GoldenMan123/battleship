@@ -135,19 +135,24 @@ function get_user_from_db(db, uid, callback, create) {
 
 function get_game_from_db(db, uid1, uid2, callback, create) {
     var games = db.collection("game")
+    var archive = db.collection("archive")
     games.findOne({uid1: uid1, uid2: uid2}, function (err, doc) {
         if (doc) {
             if (create) {
-                games.deleteOne(doc, {w:1}, function (err, response) {
-                    game = battleship.newGame()
-                    game.uid1 = uid1
-                    game.uid2 = uid2
-                    games.insert(game, {w:1}, function (err, response) {
-                        if (!err) {
-                            get_game_from_db(db, uid1, uid2, callback, false)
-                        }
-                    })
-                })    
+                archive.insert(doc, {w:1}, function (err, response) {
+                    if (!err) {
+                        games.deleteOne(doc, {w:1}, function (err, response) {
+                            game = battleship.newGame()
+                            game.uid1 = uid1
+                            game.uid2 = uid2
+                            games.insert(game, {w:1}, function (err, response) {
+                                if (!err) {
+                                    get_game_from_db(db, uid1, uid2, callback, false)
+                                }
+                            })
+                        })    
+                    }
+                })
             } else {
                 callback(doc)
             }
