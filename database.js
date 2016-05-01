@@ -60,6 +60,4 @@ function get_game_from_db(db, uid1, uid2, callback, create) {
     })
 }
 
-module.exports.create_user = create_user
-module.exports.get_user_from_db = get_user_from_db
-module.exports.get_game_from_db = get_game_from_db
+module.exports = {create_user, get_user_from_db, get_game_from_db}

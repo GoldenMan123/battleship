@@ -216,8 +216,5 @@ function doTurn(game, player, x, y) {
     return true
 }
 
-module.exports.newGame = newGame
-module.exports.placeShip = placeShip
-module.exports.startGame = startGame
-module.exports.doTurn = doTurn
+module.exports = {newGame, placeShip, startGame, doTurn}
 
