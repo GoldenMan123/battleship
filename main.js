@@ -88,7 +88,7 @@ function server_callback(request, response) {
 
 function send_game(ws, player, game) {
     gamecopy = JSON.parse(JSON.stringify(game))
-    gamecopy.player = player
+    gamecopy.myplayer = player
     gamecopy.player[1 - player].grid = null
     if (ws.readyState == ws.OPEN) {
         ws.send(JSON.stringify({'action': 'game', 'game': gamecopy, 'player': player}))
