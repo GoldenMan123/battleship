@@ -4,7 +4,7 @@
     newGame() --- Creates new game
     placeShip(game, player, ship, orientation, x, y) --- Places ship
         at the battlefield.
-        * Player: 1 or 2.
+        * Player: 0 or 1.
         * Ship: integer from 0 to 9
         * Orientation: 0 (vertical) or 1 (horizontal)
         * x, y: coordinates
@@ -34,19 +34,18 @@ function newGame() {
     game.started = false
     game.finished = false
     game.result = null
-    game.player1grid = newGrid()
-    game.player2grid = newGrid()
-    game.player1view = newGrid()
-    game.player2view = newGrid()
-    if (Math.random() > 0.5) {
-        game.turn = 1
-    } else {
-        game.turn = 2
+    game.player = [{}, {}]
+    for (var i = 0; i < 2; ++i) {
+        game.player[i].grid = newGrid()
+        game.player[i].view = newGrid()
+        game.player[i].ships = newShipArray()
+        game.player[i].turns = new Array()
     }
-    game.player1ships = newShipArray()
-    game.player2ships = newShipArray()
-    game.player1turns = new Array()
-    game.player2turns = new Array()
+    if (Math.random() > 0.5) {
+        game.turn = 0
+    } else {
+        game.turn = 1
+    }
     return game
 }
 
@@ -62,11 +61,10 @@ function placeShip(game, player, ship, orientation, x, y) {
     if ((ship < 0) || (ship > 9)) {
         return false
     }
-    if (player == 1) {
-        var sa = game.player1ships
-    } else {
-        var sa = game.player2ships
+    if ((player < 0) || (player > 1)) {
+        return false
     }
+    var sa = game.player[player].ships
     if (sa[ship] != 0) {
         return false
     }
@@ -82,13 +80,7 @@ function placeShip(game, player, ship, orientation, x, y) {
     } else {
         return false
     }
-    if (player == 1) {
-        var grid = game.player1grid
-    } else if (player == 2) {
-        var grid = game.player2grid
-    } else {
-        return false
-    }
+    var grid = game.player[player].grid
     var cx = x
     var cy = y
     for (var i = 0; i < sz; ++i) {
@@ -130,8 +122,8 @@ function startGame(game) {
         return false
     }
     for (var i = 0; i < 10; ++i) {
-        if ((game.player1ships[i] == 0) ||
-            (game.player2ships[i] == 0)) {
+        if ((game.player[0].ships[i] == 0) ||
+            (game.player[1].ships[i] == 0)) {
             return false
         }
     }
@@ -150,17 +142,10 @@ function doTurn(game, player, x, y) {
     if (game.turn != player) {
         return false
     }
-    if (player == 1) {
-        var view = game.player1view
-        var grid = game.player2grid    
-        var sa = game.player2ships
-        var turns = game.player1turns
-    } else {
-        var view = game.player2view
-        var grid = game.player1grid
-        var sa = game.player1ships
-        var turns = game.player2turns
-    }
+    var view = game.player[player].view
+    var grid = game.player[1 - player].grid    
+    var sa = game.player[1 - player].ships
+    var turns = game.player[player].turns
     if (view[x][y] != 0) {
         return false
     }
@@ -200,11 +185,7 @@ function doTurn(game, player, x, y) {
         turns.push([x, y])
         return true
     }
-    if (game.turn == 1) {
-        game.turn = 2
-    } else {
-        game.turn = 1
-    }
+    game.turn = 1 - game.turn
     turns.push([x, y])
     return true
 }

@@ -89,11 +89,7 @@ function server_callback(request, response) {
 function send_game(ws, player, game) {
     gamecopy = JSON.parse(JSON.stringify(game))
     gamecopy.player = player
-    if (player == 1) {
-        gamecopy.player2grid = null
-    } else if (player == 2) {
-        gamecopy.player1grid = null
-    }
+    gamecopy.player[1 - player].grid = null
     if (ws.readyState == ws.OPEN) {
         ws.send(JSON.stringify({'action': 'game', 'game': gamecopy, 'player': player}))
     }
@@ -211,9 +207,9 @@ mongo.connect("mongodb://localhost:27017/battleship", function (err, db) {
                                     uid1 = c
                                 }
                                 get_game_from_db(db, uid1, uid2, function(game) {
-                                    selected_player = 1
+                                    selected_player = 0
                                     if (uid1 == +req.uid) {
-                                        selected_player = 2
+                                        selected_player = 1
                                     }
                                     selected_game = game
                                     send_game(ws, selected_player, selected_game)
@@ -225,7 +221,7 @@ mongo.connect("mongodb://localhost:27017/battleship", function (err, db) {
                                 var uid2 = selected_game.uid2
                                 if (!selected_game.finished) {
                                     selected_game.finished = true
-                                    selected_game.result = 3 - selected_player
+                                    selected_game.result = 1 - selected_player
                                     collection.updateOne({_id: selected_game._id}, selected_game, function(err, results) {})
                                 }
                                 get_game_from_db(db, uid1, uid2, function(game) {
