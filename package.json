@@ -1,11 +1,12 @@
 {
     "_nodeVersion": "4.4.2",
     "name": "Modulus-Depends",
-    "version": "0.1.1",
+    "version": "0.1.2",
     "description": "Battleship in Node.js",
     "author": "Vladimir Zhukov <zhvv117@gmail.com>",
     "dependencies": {
         "mongodb": "2.1.16",
-        "ws": "1.1.0"
+        "ws": "1.1.0",
+        "mocha": "*"
     }
 }
