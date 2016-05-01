@@ -1,18 +1,18 @@
 /// DEPENDENCES
 
-var http = require('http')
-var url = require('url')
-var fs = require('fs')
-var mongo = require('mongodb').MongoClient
-var querystring = require('querystring')
-var battleship = require('./battleship.js')
-var ws = require('ws')
-var https = require('https')
-var database = require('./database.js')
+const http = require('http')
+const url = require('url')
+const fs = require('fs')
+const mongo = require('mongodb').MongoClient
+const querystring = require('querystring')
+const battleship = require('./battleship.js')
+const ws = require('ws')
+const https = require('https')
+const database = require('./database.js')
 
-var create_user = database.create_user
-var get_user_from_db = database.get_user_from_db
-var get_game_from_db = database.get_game_from_db
+const create_user = database.create_user
+const get_user_from_db = database.get_user_from_db
+const get_game_from_db = database.get_game_from_db
 
 
 /// HTTP SERVER PART

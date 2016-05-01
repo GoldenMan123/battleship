@@ -1,6 +1,6 @@
-database = require('../database.js')
-mongo = require('mongodb')
-assert = require('assert')
+const database = require('../database.js')
+const mongo = require('mongodb')
+const assert = require('assert')
 
 
 describe("create_user", function() {

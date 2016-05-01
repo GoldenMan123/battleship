@@ -1,4 +1,4 @@
-var battleship = require('./battleship.js')
+const battleship = require('./battleship.js')
 
 
 function create_user(uid) {

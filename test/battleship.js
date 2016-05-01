@@ -1,5 +1,5 @@
-var battleship = require('../battleship.js')
-assert = require('assert')
+const battleship = require('../battleship.js')
+const assert = require('assert')
 
 function testemptygrid(grid) {
     assert.equal(grid.length, 10)
