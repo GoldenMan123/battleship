@@ -3,4 +3,6 @@ node_js:
     - "4.4.2"
 notifications:
     email: false
+services:
+    - mongodb
 
