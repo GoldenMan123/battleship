@@ -63,6 +63,7 @@ describe("placeShip", function() {
     it("Нельзя размещать корабли за пределами поля", function () {
         assert.equal(battleship.placeShip(game, 1, 10, 0, 10, 10), false)
         assert.equal(battleship.placeShip(game, 1, 10, 0, -10, -10), false)
+        assert.equal(battleship.placeShip(game, 1, 10, 0, 8, 8), false)
     })
     it("Нельзя размещать один и тот же корабль дважды", function() {
         assert.equal(battleship.placeShip(game, 1, 0, 0, 0, 0), true)
@@ -70,6 +71,7 @@ describe("placeShip", function() {
     })
     it("Нельзя размещать корабли рядом", function() {
         assert.equal(battleship.placeShip(game, 1, 9, 0, 5, 5), true)
+        assert.equal(battleship.placeShip(game, 1, 10, 0, 5, 5), false)
         assert.equal(battleship.placeShip(game, 1, 10, 0, 6, 6), false)
     })
     it("Должен заполняться список кораблей у игроков", function() {
@@ -92,6 +94,11 @@ describe("startGame", function() {
         assert.equal(battleship.startGame(game), true)
         assert.equal(game.started, true)
     })
+    it("Нельзя начать игру дважды", function() {
+        fillgame(game)
+        assert.equal(battleship.startGame(game), true)
+        assert.equal(battleship.startGame(game), false)
+    })
 })
 
 describe("doTurn", function() {
@@ -101,6 +108,10 @@ describe("doTurn", function() {
         fillgame(game)
         battleship.startGame(game)
         game.turn = 1
+    })
+    it("Нельзя стрелять, если игра ещё не началась", function() {
+        game.started = false
+        assert.equal(battleship.doTurn(game, 1, 0, 0), false)
     })
     it("Нельзя ходить вне очереди", function() {
         assert.equal(battleship.doTurn(game, 2, 0, 0), false)
@@ -116,6 +127,10 @@ describe("doTurn", function() {
         assert.equal(battleship.doTurn(game, 1, 0, 0), true)
         assert.equal(battleship.doTurn(game, 1, 0, 1), true)
         assert.equal(game.turn, 1)
+    })
+    it("Нельзя стрелять два раза в одну и ту же точку", function() {
+        assert.equal(battleship.doTurn(game, 1, 0, 0), true)
+        assert.equal(battleship.doTurn(game, 1, 0, 0), false)
     })
     it("Ходы должны отображаться у игрока", function() {
         assert.equal(battleship.doTurn(game, 1, 0, 0), true)
