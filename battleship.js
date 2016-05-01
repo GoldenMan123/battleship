@@ -18,11 +18,7 @@ const shipsize = [4, 3, 3, 2, 2, 2, 1, 1, 1, 1]
 
 // Creates empty game grid
 function newGrid() {
-    var grid = new Array()
-    for (var i = 0; i < 10; ++i) {
-        grid.push(new Array(10).fill(0))
-    }
-    return grid
+    return new Array(10).fill(null).map(() => new Array(10).fill(0))
 }
 
 
