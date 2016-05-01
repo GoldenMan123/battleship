@@ -20,10 +20,7 @@ const shipsize = [4, 3, 3, 2, 2, 2, 1, 1, 1, 1]
 function newGrid() {
     var grid = new Array()
     for (var i = 0; i < 10; ++i) {
-        grid.push(new Array())
-        for (var j = 0; j < 10; ++j) {
-            grid[i].push(0)
-        }
+        grid.push(new Array(10).fill(0))
     }
     return grid
 }
@@ -31,11 +28,7 @@ function newGrid() {
 
 // Creates ship use flags
 function newShipArray() {
-    sa = new Array()
-    for (var i = 0; i < 10; ++i) {
-        sa.push(0)
-    }
-    return sa
+    return new Array(10).fill(0)
 }
 
 
