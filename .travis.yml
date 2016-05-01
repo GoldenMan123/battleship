@@ -5,6 +5,4 @@ notifications:
     email: false
 services:
     - mongodb
-after_success:
-    - coveralls
 
