@@ -191,10 +191,7 @@ function doTurn(game, player, x, y) {
                     }
                 }
             }
-            var sum = 0
-            for (var i = 0; i < 10; ++i) {
-                sum += sa[i]
-            }
+            var sum = sa.reduce((a, b) => a + b)
             if (sum == 0) {
                 game.finished = true
                 game.result = player
