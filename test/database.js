@@ -55,5 +55,19 @@ describe("get_from_db", function() {
             done()
         }, true)
     })
+    it("Старая игра должна помещаться в архив", function(done) {
+        archive = db.collection("archive")
+        database.get_game_from_db(db, 0, 1, function(game) {
+            assert(game)
+            database.get_game_from_db(db, 0, 1, function(new_game) {
+                assert(new_game)
+                assert.equal(game.started, false)
+                archive.findOne({uid1: 0, uid2: 1}, function(err, doc) {
+                    assert.equal(String(doc._id), String(game._id))
+                    done()
+                })
+            }, true)
+        }, true)
+    })
 })
 
