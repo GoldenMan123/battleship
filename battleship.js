@@ -155,34 +155,36 @@ function doTurn(game, player, x, y) {
     } else {
         view[x][y] = grid[x][y]
         sa[ship - 1]--
-        if (sa[ship - 1] == 0) {
-            for (var i = 0; i < 10; ++i) {
-                for (var j = 0; j < 10; ++j) {
-                    if (grid[i][j] == ship) {
-                        for (var dx = -1; dx < 2; ++dx) {
-                            for (var dy = -1; dy < 2; ++dy) {
-                                if ((i + dx < 0) || (j + dy < 0) ||
-                                    (i + dx > 9) || (j + dy > 9)) {
-                                    continue
-                                }
-                                cur = grid[i + dx][j + dy]
-                                if (cur == 0) {
-                                    view[i + dx][j + dy] = -1
-                                } else {
-                                    view[i + dx][j + dy] = cur
-                                }
-                            }
+        turns.push([x, y])
+        if (sa[ship - 1] != 0) {
+            return true;
+        }
+        for (var i = 0; i < 10; ++i) {
+            for (var j = 0; j < 10; ++j) {
+                if (grid[i][j] != ship) {
+                    continue
+                }
+                for (var dx = -1; dx < 2; ++dx) {
+                    for (var dy = -1; dy < 2; ++dy) {
+                        if ((i + dx < 0) || (j + dy < 0) ||
+                            (i + dx > 9) || (j + dy > 9)) {
+                            continue
+                        }
+                        cur = grid[i + dx][j + dy]
+                        if (cur == 0) {
+                            view[i + dx][j + dy] = -1
+                        } else {
+                            view[i + dx][j + dy] = cur
                         }
                     }
                 }
             }
-            var sum = sa.reduce((a, b) => a + b)
-            if (sum == 0) {
-                game.finished = true
-                game.result = player
-            }
         }
-        turns.push([x, y])
+        var sum = sa.reduce((a, b) => a + b)
+        if (sum == 0) {
+            game.finished = true
+            game.result = player
+        }
         return true
     }
     game.turn = 1 - game.turn
