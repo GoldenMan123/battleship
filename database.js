@@ -1,4 +1,5 @@
 const battleship = require('./battleship.js')
+const Promise = require('bluebird')
 
 
 function create_user(uid) {
