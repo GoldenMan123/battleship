@@ -10,11 +10,11 @@ const ws = require('ws')
 const https = require('https')
 const concat = require('concat-stream')
 const database = require('./database.js')
+const Promise = require('bluebird')
 
 const create_user = database.create_user
 const get_user_from_db = database.get_user_from_db
 const get_game_from_db = database.get_game_from_db
-
 
 /// HTTP SERVER PART
 
@@ -43,7 +43,17 @@ function send_js(response, filename) {
 }
 
 function authorize_vk(code, response) {
-    https.get("https://oauth.vk.com/access_token?client_id=5422303&client_secret=SECRET&redirect_uri=http://localhost:8080&code=" + code, function(vk_res) {
+    var vkAuth = new Promise(function (resolve, reject) {
+        https.get("https://oauth.vk.com/access_token?client_id=5422303&client_secret=SECRET&redirect_uri=http://localhost:8080&code=" + code, function(vk_res) {
+            if (!vk_res) {
+                reject()
+            } else {
+                resolve(vk_res)
+            }
+        })
+    })
+
+    vkAuth.then(vk_res => {
         vk_res.pipe(concat(function (d) {
             try {
                 token = JSON.parse(d.toString()).access_token
@@ -54,7 +64,7 @@ function authorize_vk(code, response) {
                 response.end()
             }
         }))
-    })
+    }, () => response.end())
 }
 
 function server_callback(request, response) {
