@@ -8,6 +8,7 @@ const querystring = require('querystring')
 const battleship = require('./battleship.js')
 const ws = require('ws')
 const https = require('https')
+const concat = require('concat-stream')
 const database = require('./database.js')
 
 const create_user = database.create_user
@@ -43,7 +44,7 @@ function send_js(response, filename) {
 
 function authorize_vk(code, response) {
     https.get("https://oauth.vk.com/access_token?client_id=5422303&client_secret=SECRET&redirect_uri=http://localhost:8080&code=" + code, function(vk_res) {
-        vk_res.on("data", function (d) {
+        vk_res.pipe(concat(function (d) {
             try {
                 token = JSON.parse(d.toString()).access_token
                 response.writeHead(301,
@@ -52,7 +53,7 @@ function authorize_vk(code, response) {
             } finally {
                 response.end()
             }
-        })
+        }))
     })
 }
 
