@@ -9,84 +9,49 @@ function create_user(uid) {
 }
 
 function get_user_from_db(db, uid, callback, create) {
-    var users = db.collection('users')
-
-    var getUser = new Promise(function(resolve, reject) {
-        users.findOne({uid: uid}, function(err, doc) {
-            if (!doc) {
-                reject(err)
-            } else {
-                resolve(doc)
+    var users = Promise.promisifyAll(db.collection('users'))
+    users.findOne({uid: uid})
+    .then(doc => {
+        if (!doc) {
+            if (create) {
+                users.insert(create_user(uid), {w:1})
+                .then(() => get_user_from_db(db, uid, callback, false))
             }
-        })
-    })
-
-    getUser.then(doc => callback(doc), () => {
-        users.insert(create_user(uid), {w:1}, function(err, _) {
-            if (!err) {
-                get_user_from_db(db, uid, callback, false)
-            }
-        })
+        } else {
+            callback(doc)
+        }
     })
 }
 
 function get_game_from_db(db, uid1, uid2, callback, create) {
-    var games = db.collection("game")
-    var archive = db.collection("archive")
-
-    findGame = new Promise(function (resolve, reject) {
-        games.findOne({uid1: uid1, uid2: uid2}, function (err, doc) {
-            if (!doc) {
-                reject(err)
-            } else { 
-                resolve(doc)
+    var games = Promise.promisifyAll(db.collection("game"))
+    var archive = Promise.promisifyAll(db.collection("archive"))
+    games.findOne({uid1 : uid1, uid2: uid2})
+    .then(doc => {
+        if (!doc) {
+            game = battleship.newGame()
+            game.uid1 = uid1
+            game.uid2 = uid2
+            games.insert(game, {w:1})
+            .then(() => get_game_from_db(db, uid1, uid2, callback, false))   
+        } else {
+            if (!create) {
+                callback(doc)
+                return
             }
-        })
-    })
-
-    findGame.then(doc => {
-        if (create) {
-            archiveInsert = new Promise(function (resolve, reject) {
-                archive.insert(doc, {w:1}, function (err, response) {
-                    if (err) {
-                        reject(err)
-                    } else {
-                        resolve(doc)
-                    }
-                })
+            archive.insert(doc, {w:1})
+            .then(doc => {
+                return games.deleteOne(doc, {w:1})
             })
-            archiveInsert.then(doc => {
-                return new Promise(function (resolve, reject) {
-                    games.deleteOne(doc, {w:1}, function (err, doc) {
-                        if (err) {
-                            reject(err)
-                        } else {
-                            resolve(doc)
-                        }
-                    })
-                })
-            }).then(doc => {
+            .then(doc => {
                 game = battleship.newGame()
                 game.uid1 = uid1
                 game.uid2 = uid2
-                games.insert(game, {w:1}, function (err, response) {
-                    if (!err) {
-                        get_game_from_db(db, uid1, uid2, callback, false)
-                    }
-                })
+                return games.insert(game, {w:1})
             })
-        } else {
-            callback(doc)
+            .then(() => get_game_from_db(db, uid1, uid2, callback, false))
+
         }
-    }, () => {
-        game = battleship.newGame()
-        game.uid1 = uid1
-        game.uid2 = uid2
-        games.insert(game, {w:1}, function (err, response) {
-            if (!err) {
-                get_game_from_db(db, uid1, uid2, callback, false)
-            }
-        })
     })
 }
 
